@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -7,17 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from app.core.config import settings
 from app.core.database import init_db
 from app.api import auth, planetas
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Manejador del ciclo de vida de la aplicación para eventos de inicio y apagado.
-    """
-    print("🚀 Iniciando aplicación y base de datos...")
-    init_db()
-    yield
-    print("👋 Apagando aplicación...")
 
 # Crear aplicación FastAPI
 app = FastAPI(
@@ -60,8 +48,7 @@ app = FastAPI(
     },
     swagger_ui_parameters={
         "persistAuthorization": True,
-    },
-    lifespan=lifespan
+    }
 )
 
 # Configurar CORS
@@ -102,6 +89,14 @@ async def integrity_exception_handler(request: Request, exc: IntegrityError):
         status_code=status.HTTP_409_CONFLICT,
         content={"detail": "Error de integridad: registro duplicado"}
     )
+
+
+# Evento de inicio
+@app.on_event("startup")
+async def startup_event():
+    print("🚀 Iniciando aplicación...")
+    init_db()
+    print("✅ Base de datos inicializada")
 
 
 # Incluir routers

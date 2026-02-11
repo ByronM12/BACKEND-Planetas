@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 from typing import List
 
 
@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "*"
     ENVIRONMENT: str = "development"
 
-    model_config = SettingsConfigDict(
-        env_file=".env", case_sensitive=True
-    )
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
 
     def get_allowed_origins(self) -> List[str]:
         if self.ALLOWED_ORIGINS == "*":

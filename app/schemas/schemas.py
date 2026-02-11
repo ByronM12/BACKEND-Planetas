@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -37,7 +37,8 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
 
 
 class Token(BaseModel):
@@ -64,12 +65,29 @@ class PlanetaBase(BaseModel):
     estado: EstadoPlaneta = Field(EstadoPlaneta.EN_ESTUDIO, description="Estado: Confirmado o En estudio")
     fechaDescubrimiento: Optional[datetime] = Field(None, description="Fecha de descubrimiento")
 
-    @field_validator('nombre')
-    @classmethod
-    def nombre_no_vacio(cls, v: str) -> str:
+    @validator('nombre')
+    def nombre_no_vacio(cls, v):
         if not v or not v.strip():
             raise ValueError('El nombre del planeta no puede estar vacío')
         return v.strip()
+
+    @validator('distanciaAlSol')
+    def distancia_valida(cls, v):
+        if v is not None and v < 0:
+            raise ValueError('La distancia al Sol no puede ser negativa')
+        return v
+
+    @validator('numeroLunas')
+    def lunas_validas(cls, v):
+        if v is not None and v < 0:
+            raise ValueError('El número de lunas no puede ser negativo')
+        return v
+
+    @validator('masa')
+    def masa_valida(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('La masa debe ser un valor positivo')
+        return v
 
 
 class PlanetaCreate(PlanetaBase):
@@ -85,9 +103,8 @@ class PlanetaUpdate(BaseModel):
     estado: Optional[EstadoPlaneta] = None
     fechaDescubrimiento: Optional[datetime] = None
 
-    @field_validator('nombre')
-    @classmethod
-    def nombre_no_vacio(cls, v: Optional[str]) -> Optional[str]:
+    @validator('nombre')
+    def nombre_no_vacio(cls, v):
         if v is not None and (not v or not v.strip()):
             raise ValueError('El nombre del planeta no puede estar vacío')
         return v.strip() if v else v
@@ -98,7 +115,8 @@ class PlanetaResponse(PlanetaBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
 
 
 class PlanetaListResponse(BaseModel):
