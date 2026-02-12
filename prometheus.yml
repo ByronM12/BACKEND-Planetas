@@ -1,4 +1,7 @@
+global:
+  scrape_interval: 15s
+
 scrape_configs:
-  - job_name: 'fastapi-planetas'
+  - job_name: 'planetas-api'
     static_configs:
-      - targets: ['api:8000'] # <--- Cambia 'backend-planetas' por 'api'
+      - targets: ['planetas-backend:8000']

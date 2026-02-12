@@ -16,8 +16,7 @@ async def lifespan(app: FastAPI):
     """
     Manejador del ciclo de vida de la aplicación.
     """
-    print("🚀 Iniciando aplicación y base de datos...")
-    # Podrías llamar a init_db() aquí si es necesario
+    print("🚀 Iniciando aplicación...")
     yield
     print("👋 Apagando aplicación...")
 

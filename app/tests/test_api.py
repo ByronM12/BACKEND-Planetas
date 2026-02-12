@@ -266,7 +266,7 @@ class TestPlanetaCRUD:
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 403
-        assert "permisos" in response.json()["detail"].lower()
+        assert "permissions" in response.json()["detail"].lower()
     
     def test_get_planeta_by_id_admin(self):
         """Test: ADMIN puede obtener planeta por ID"""

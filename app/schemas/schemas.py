@@ -81,7 +81,7 @@ class PlanetaUpdate(BaseModel):
     tipo: Optional[TipoPlaneta] = None
     distanciaAlSol: Optional[float] = Field(None, ge=0)
     numeroLunas: Optional[int] = Field(None, ge=0)
-    masa: Optional[float] = Field(None, ge=0)
+    masa: Optional[float] = Field(None, gt=0)
     estado: Optional[EstadoPlaneta] = None
     fechaDescubrimiento: Optional[datetime] = None
 
