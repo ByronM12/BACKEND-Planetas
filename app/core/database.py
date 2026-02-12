@@ -2,12 +2,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
-# Usar SQLite para Railway (más simple para deployment)
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+engine_args = {}
+# El argumento 'check_same_thread' es solo para SQLite.
+if settings.DATABASE_URL.startswith("sqlite"):
+    engine_args["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}  # Solo para SQLite
+    settings.DATABASE_URL, **engine_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

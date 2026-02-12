@@ -1,5 +1,6 @@
 from logging.config import fileConfig
 import os
+from dotenv import load_dotenv
 import sys
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -18,16 +19,20 @@ if config.config_file_name is not None:
 # Add the project root to the Python path to find the app models
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Cargar variables de entorno desde el archivo .env
+load_dotenv()
+
 from app.core.database import Base
-from app.models import user  # Import all your models here
+from app.models import user, planeta  # Import all your models here
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
 # Read the database URL from the environment variable and set it in the config.
-# This is more robust than relying on the .ini file's variable substitution.
 db_url = os.getenv("DATABASE_URL")
+if not db_url:
+    raise ValueError("DATABASE_URL environment variable not set. Please create a .env file or set it manually.")
 config.set_main_option("sqlalchemy.url", db_url)
 
 # other values from the config, defined by the needs of env.py,

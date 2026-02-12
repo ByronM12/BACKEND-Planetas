@@ -4,33 +4,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError
-from app.core.config import settings
-from app.core.database import init_db
 from app.api import auth, planetas
 
-# --- NUEVA IMPORTACIÓN PARA MONITOREO ---
+# --- MONITOREO ---
 from prometheus_fastapi_instrumentator import Instrumentator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Manejador del ciclo de vida de la aplicación.
-    """
-    print("🚀 Iniciando aplicación...")
+    """Manejador del ciclo de vida de la aplicación."""
+    print("🚀 Iniciando aplicación en Docker...")
     yield
     print("👋 Apagando aplicación...")
 
 app = FastAPI(
     title="Sistema de Gestión de Planetas",
-    description="API REST para la gestión de planetas con monitoreo integrado.",
+    description="API REST para la gestión de planetas con monitoreo y pruebas de carga.",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# --- CONFIGURACIÓN DE MONITOREO ---
-# Esto crea el endpoint /metrics automáticamente
-Instrumentator().instrument(app).expose(app)
-
+# --- CONFIGURACIÓN DE CORS ---
+# Permitir "*" es vital para que Vercel y JMeter no sean bloqueados
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,6 +33,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- CONFIGURACIÓN DE MONITOREO (Prometheus) ---
+# Debe ir después de CORS para registrar peticiones externas
+Instrumentator().instrument(app).expose(app)
+
+# Manejadores de Excepciones (Para mejores reportes en JMeter)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = [{"field": " -> ".join(str(x) for x in error["loc"][1:]), "message": error["msg"]} for error in exc.errors()]
@@ -48,6 +47,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def integrity_exception_handler(request: Request, exc: IntegrityError):
     return JSONResponse(status_code=409, content={"detail": "Error de integridad: registro duplicado"})
 
+# Rutas
 app.include_router(auth.router)
 app.include_router(planetas.router)
 
@@ -61,4 +61,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+    # Se usa 0.0.0.0 para que sea accesible desde fuera del contenedor Docker
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
